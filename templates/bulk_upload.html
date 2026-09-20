@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Bulk Upload - Yellow Pages CRM{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Bulk / Excel Lead Import</h4>
+  <a href="{{ url_for('bulk.history') }}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-clock-rotate-left"></i> Import History</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <p class="text-muted small">
+      Expected columns (any capitalisation): <code>Business Name</code>, <code>Phone</code>, and optionally
+      <code>Contact Person</code>, <code>Alt Phone</code>, <code>Email</code>, <code>Address</code>, <code>City</code>, <code>State</code>.
+      Rows with a phone number that already exists in the CRM are skipped as duplicates.
+    </p>
+    <form method="POST" enctype="multipart/form-data" class="row g-3">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="col-md-6">
+        <label class="form-label">Excel File (.xlsx / .xls) *</label>
+        <input type="file" name="excel_file" accept=".xlsx,.xls" class="form-control" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Default State (if column missing)</label>
+        <input type="text" name="default_state" class="form-control" placeholder="e.g. Telangana">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Auto-assign all rows to</label>
+        <select name="bulk_assign_to" class="form-select">
+          <option value="">-- Leave unassigned --</option>
+          {% for e in employees %}
+          <option value="{{ e.id }}">{{ e.name }} ({{ e.role_label }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-file-import"></i> Import</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

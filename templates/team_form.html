@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{% if team %}Edit Team{% else %}New Team{% endif %} - Yellow Pages CRM{% endblock %}
+{% block content %}
+<h4 class="mb-3">{% if team %}Edit {{ team.name }}{% else %}New Team{% endif %}</h4>
+<div class="card">
+  <div class="card-body">
+    <form method="POST" class="row g-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="col-md-6">
+        <label class="form-label">Team Name *</label>
+        <input type="text" name="name" class="form-control" value="{{ team.name if team else '' }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Team Lead</label>
+        <select name="team_lead_id" class="form-select">
+          <option value="">-- Not assigned --</option>
+          {% for l in leads %}
+          <option value="{{ l.id }}" {% if team and team.team_lead_id==l.id %}selected{% endif %}>{{ l.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save</button>
+        <a href="{{ url_for('teams.list_teams') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

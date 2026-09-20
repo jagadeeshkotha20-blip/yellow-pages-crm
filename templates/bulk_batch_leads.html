@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ batch.filename }} - Import Detail{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="mb-0">{{ batch.filename }}</h4>
+    <small class="text-muted">
+      Uploaded {{ batch.uploaded_at.strftime('%d %b %Y, %I:%M %p') }} by
+      {{ batch.uploaded_by.name if batch.uploaded_by else '—' }}
+      &middot; {{ batch.imported_count }} imported, {{ batch.duplicate_count }} duplicates skipped,
+      {{ batch.error_count }} errors
+    </small>
+  </div>
+  <a href="{{ url_for('bulk.history') }}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-arrow-left"></i> Back</a>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Business</th><th>Phone</th><th>State/City</th><th>Status</th><th>Assigned To</th></tr></thead>
+      <tbody>
+        {% for lead in leads %}
+        <tr>
+          <td><a href="{{ url_for('leads.view_lead', lead_id=lead.id) }}">{{ lead.business_name }}</a></td>
+          <td>{{ lead.phone }}</td>
+          <td>{{ lead.state }}{% if lead.city %}, {{ lead.city }}{% endif %}</td>
+          <td><span class="badge bg-secondary">{{ lead.status }}</span></td>
+          <td>{{ lead.assigned_to.name if lead.assigned_to else 'Unassigned' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center text-muted py-4">No leads from this import (all rows may have been duplicates/errors).</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

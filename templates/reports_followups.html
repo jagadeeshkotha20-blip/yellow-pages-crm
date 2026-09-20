@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Follow-ups Report - Yellow Pages CRM{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Follow-ups Report</h4>
+  <div>
+    <a href="{{ url_for('reports.activity') }}" class="btn btn-sm btn-outline-secondary">Activity</a>
+    <a href="{{ url_for('reports.reassignments') }}" class="btn btn-sm btn-outline-secondary">Reassignments</a>
+  </div>
+</div>
+
+<div class="btn-group btn-group-sm mb-3">
+  <a href="{{ url_for('reports.followups', status='pending') }}" class="btn btn-outline-primary {% if status=='pending' %}active{% endif %}">Upcoming</a>
+  <a href="{{ url_for('reports.followups', status='overdue') }}" class="btn btn-outline-danger {% if status=='overdue' %}active{% endif %}">Overdue</a>
+  <a href="{{ url_for('reports.followups', status='completed') }}" class="btn btn-outline-success {% if status=='completed' %}active{% endif %}">Completed</a>
+  <a href="{{ url_for('reports.followups', status='all') }}" class="btn btn-outline-secondary {% if status=='all' %}active{% endif %}">All</a>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Lead</th><th>Employee</th><th>Follow-up Date</th><th>Notes</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for fu in items %}
+        <tr class="{% if not fu.is_completed and fu.follow_up_date < now %}table-danger{% endif %}">
+          <td><a href="{{ url_for('leads.view_lead', lead_id=fu.lead_id) }}">{{ fu.lead.business_name }}</a></td>
+          <td>{{ fu.employee.name }}</td>
+          <td>{{ fu.follow_up_date.strftime('%d %b %Y, %I:%M %p') }}</td>
+          <td class="small text-muted">{{ fu.notes or '—' }}</td>
+          <td>
+            {% if fu.is_completed %}<span class="badge bg-success">Done</span>
+            {% elif fu.follow_up_date < now %}<span class="badge bg-danger">Overdue</span>
+            {% else %}<span class="badge bg-warning text-dark">Pending</span>{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center text-muted py-4">No follow-ups match this filter.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

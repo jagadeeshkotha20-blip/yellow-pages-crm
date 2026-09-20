@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Yellow Pages CRM{% endblock %}
+{% block content %}
+<h4 class="mb-3">Dashboard <small class="text-muted fs-6">Welcome, {{ current_user.name }}</small></h4>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-6">
+    <div class="kpi-card kpi-blue">
+      <small>Total Leads (visible to you)</small>
+      <h2>{{ total_leads }}</h2>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="kpi-card kpi-yellow">
+      <small>Unassigned</small>
+      <h2>{{ unassigned_leads }}</h2>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="kpi-card kpi-green">
+      <small>Assigned</small>
+      <h2>{{ assigned_leads }}</h2>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="kpi-card kpi-red">
+      <small>Overdue Follow-ups</small>
+      <h2>{{ overdue_follow_ups }}</h2>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-6">
+    <div class="kpi-card kpi-gray">
+      <small>Follow-ups Today</small>
+      <h2>{{ follow_ups_today }}</h2>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="kpi-card kpi-green">
+      <small>Enrolled</small>
+      <h2>{{ enrolled_count }}</h2>
+    </div>
+  </div>
+  {% if employee_count is not none %}
+  <div class="col-md-3 col-6">
+    <div class="kpi-card kpi-blue">
+      <small>Active Employees (in your scope)</small>
+      <h2>{{ employee_count }}</h2>
+    </div>
+  </div>
+  {% endif %}
+  <div class="col-md-3 col-6">
+    <a href="{{ url_for('leads.list_leads', assigned='unassigned') }}" class="text-decoration-none">
+      <div class="kpi-card kpi-yellow">
+        <small><i class="fa-solid fa-arrow-right"></i> Go claim unassigned leads</small>
+        <h2 class="fs-5">Unassigned Pool</h2>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header fw-semibold">Leads by Status</div>
+      <div class="card-body">
+        <table class="table table-sm mb-0">
+          <tbody>
+          {% for status, count in status_counts.items() %}
+            <tr>
+              <td>{{ status }}</td>
+              <td class="text-end fw-semibold">{{ count }}</td>
+              <td style="width:40%">
+                <div class="progress" style="height:8px;">
+                  <div class="progress-bar bg-primary" style="width: {{ (count / total_leads * 100) if total_leads else 0 }}%"></div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% if leaderboard %}
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header fw-semibold">Most Active This Month</div>
+      <ul class="list-group list-group-flush">
+        {% for name, cnt in leaderboard %}
+        <li class="list-group-item d-flex justify-content-between">
+          <span>{{ name }}</span>
+          <span class="badge bg-primary">{{ cnt }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

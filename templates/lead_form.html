@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}New Lead - Yellow Pages CRM{% endblock %}
+{% block content %}
+<h4 class="mb-3">New Lead</h4>
+<div class="card">
+  <div class="card-body">
+    <form method="POST" class="row g-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="col-md-6">
+        <label class="form-label">Business Name *</label>
+        <input type="text" name="business_name" class="form-control" value="{{ form_data.get('business_name', '') if form_data else '' }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Contact Person</label>
+        <input type="text" name="contact_person" class="form-control" value="{{ form_data.get('contact_person', '') if form_data else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Phone *</label>
+        <input type="text" name="phone" class="form-control" value="{{ form_data.get('phone', '') if form_data else '' }}" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Alternate Phone</label>
+        <input type="text" name="alt_phone" class="form-control" value="{{ form_data.get('alt_phone', '') if form_data else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" value="{{ form_data.get('email', '') if form_data else '' }}">
+      </div>
+      <div class="col-md-8">
+        <label class="form-label">Address</label>
+        <input type="text" name="address" class="form-control" value="{{ form_data.get('address', '') if form_data else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">City</label>
+        <input type="text" name="city" class="form-control" value="{{ form_data.get('city', '') if form_data else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">State</label>
+        <select name="state" class="form-select">
+          <option value="">Select state</option>
+          {% for s in states %}
+          <option value="{{ s }}" {% if form_data and form_data.get('state')==s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Create Lead</button>
+        <a href="{{ url_for('leads.list_leads') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

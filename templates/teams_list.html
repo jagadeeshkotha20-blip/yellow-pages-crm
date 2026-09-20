@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Teams - Yellow Pages CRM{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Teams</h4>
+  {% if can_manage %}
+  <a href="{{ url_for('teams.new_team') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> New Team</a>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  {% for team in teams %}
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">{{ team.name }}</h5>
+        <p class="text-muted small mb-2">
+          Team Lead: {{ team.team_lead.name if team.team_lead else 'Not assigned' }}
+        </p>
+        <p class="mb-3"><span class="badge bg-primary">{{ member_counts.get(team.id, 0) }} active member(s)</span></p>
+        <a href="{{ url_for('teams.view_team', team_id=team.id) }}" class="btn btn-sm btn-outline-primary">View Team</a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12">
+    <p class="text-muted">No teams set up yet.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

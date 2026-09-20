@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}{{ lead.business_name }} - Yellow Pages CRM{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h4 class="mb-0">{{ lead.business_name }}</h4>
+    <small class="text-muted">{{ lead.phone }} {% if lead.city %}&middot; {{ lead.city }}{% endif %}{% if lead.state %}, {{ lead.state }}{% endif %}</small>
+  </div>
+  <div class="text-end">
+    <span class="badge bg-secondary status-badge mb-1">{{ lead.status }}</span><br>
+    {% if lead.assigned_to %}
+      <span class="lead-locked"><i class="fa-solid fa-lock"></i> Locked to {{ lead.assigned_to.name }}</span>
+    {% else %}
+      <span class="lead-open"><i class="fa-solid fa-lock-open"></i> Unassigned</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Business Details</div>
+      <div class="card-body small">
+        <p class="mb-1"><strong>Contact Person:</strong> {{ lead.contact_person or '—' }}</p>
+        <p class="mb-1"><strong>Phone:</strong> {{ lead.phone }}</p>
+        <p class="mb-1"><strong>Alt Phone:</strong> {{ lead.alt_phone or '—' }}</p>
+        <p class="mb-1"><strong>Email:</strong> {{ lead.email or '—' }}</p>
+        <p class="mb-1"><strong>Address:</strong> {{ lead.address or '—' }}</p>
+        <p class="mb-1"><strong>Source:</strong> {{ lead.source }}</p>
+        <p class="mb-1"><strong>Created:</strong> {{ lead.created_at.strftime('%d %b %Y') }}</p>
+      </div>
+    </div>
+
+    {% if is_management %}
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Assign / Reassign (Admin)</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('leads.assign_lead', lead_id=lead.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <select name="employee_id" class="form-select form-select-sm mb-2">
+            <option value="">-- Unassigned --</option>
+            {% for e in employees %}
+            <option value="{{ e.id }}" {% if lead.assigned_to_id==e.id %}selected{% endif %}>{{ e.name }} ({{ e.role_label }})</option>
+            {% endfor %}
+          </select>
+          <input type="text" name="reason" class="form-control form-control-sm mb-2" placeholder="Reason (optional)">
+          <button class="btn btn-sm btn-primary w-100"><i class="fa-solid fa-right-left"></i> Assign</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if lead.assigned_to and can_work %}
+    <form method="POST" action="{{ url_for('leads.release_lead', lead_id=lead.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-sm btn-outline-danger w-100 mb-3"><i class="fa-solid fa-lock-open"></i> Release Lead</button>
+    </form>
+    {% endif %}
+
+    {% if not lead.assigned_to and (current_user.can_call() or current_user.is_management()) %}
+    <form method="POST" action="{{ url_for('leads.claim_lead', lead_id=lead.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-sm btn-success w-100 mb-3"><i class="fa-solid fa-hand"></i> Claim This Lead</button>
+    </form>
+    {% endif %}
+
+    {% if lead.enrollment %}
+    <div class="card border-success mb-3">
+      <div class="card-body small">
+        <strong class="text-success"><i class="fa-solid fa-circle-check"></i> Enrolled</strong>
+        <p class="mb-0">Plan: {{ lead.enrollment.plan or '—' }} &middot; ₹{{ lead.enrollment.amount or '0' }}</p>
+        <p class="mb-0 text-muted">on {{ lead.enrollment.enrolled_at.strftime('%d %b %Y') }}</p>
+      </div>
+    </div>
+    {% elif can_work %}
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Mark Enrolled / Payment</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('leads.enroll_lead', lead_id=lead.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="text" name="plan" class="form-control form-control-sm mb-2" placeholder="Plan name">
+          <input type="number" step="0.01" name="amount" class="form-control form-control-sm mb-2" placeholder="Amount (₹)">
+          <button class="btn btn-sm btn-success w-100"><i class="fa-solid fa-indian-rupee-sign"></i> Record Enrollment</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-8">
+    {% if can_work %}
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Log a Call / Update Status</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('leads.log_call', lead_id=lead.id) }}" class="row g-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="col-md-5">
+            <select name="status" class="form-select form-select-sm" required>
+              {% for s in statuses %}
+              <option value="{{ s }}" {% if lead.status==s %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <input type="number" name="duration_minutes" class="form-control form-control-sm" placeholder="Call duration (min)">
+          </div>
+          <div class="col-md-4">
+            <button class="btn btn-sm btn-primary w-100"><i class="fa-solid fa-phone"></i> Save Call</button>
+          </div>
+          <div class="col-12">
+            <textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="What was discussed..."></textarea>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Schedule Follow-up</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('leads.add_followup', lead_id=lead.id) }}" class="row g-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="col-md-5">
+            <input type="datetime-local" name="follow_up_date" class="form-control form-control-sm" required>
+          </div>
+          <div class="col-md-5">
+            <input type="text" name="notes" class="form-control form-control-sm" placeholder="Note">
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-sm btn-outline-primary w-100"><i class="fa-solid fa-calendar-plus"></i></button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Pending Follow-ups</div>
+      <ul class="list-group list-group-flush">
+        {% for fu in lead.follow_ups if not fu.is_completed %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ fu.follow_up_date.strftime('%d %b %Y, %I:%M %p') }}</strong>
+            <div class="small text-muted">{{ fu.notes }} — set by {{ fu.employee.name }}</div>
+          </div>
+          {% if can_work %}
+          <form method="POST" action="{{ url_for('leads.complete_followup', lead_id=lead.id, fu_id=fu.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm btn-outline-success"><i class="fa-solid fa-check"></i> Done</button>
+          </form>
+          {% endif %}
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">No pending follow-ups.</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header fw-semibold">Full History</div>
+      <div class="card-body">
+        {% set events = [] %}
+        {% for c in lead.call_logs %}
+          {% set _ = events.append((c.call_time, 'call', c)) %}
+        {% endfor %}
+        {% for f in lead.follow_ups %}
+          {% set _ = events.append((f.created_at, 'followup', f)) %}
+        {% endfor %}
+        {% for a in lead.assignment_history %}
+          {% set _ = events.append((a.changed_at, 'assign', a)) %}
+        {% endfor %}
+        {% for dt, kind, obj in events|sort(attribute=0, reverse=True) %}
+        <div class="timeline-item">
+          <small class="text-muted">{{ dt.strftime('%d %b %Y, %I:%M %p') }}</small>
+          {% if kind == 'call' %}
+            <div><i class="fa-solid fa-phone text-primary"></i> <strong>Call by {{ obj.employee.name }}</strong> — status set to <span class="badge bg-secondary">{{ obj.status_set }}</span></div>
+            {% if obj.notes %}<div class="small text-muted">{{ obj.notes }}</div>{% endif %}
+          {% elif kind == 'followup' %}
+            <div><i class="fa-solid fa-calendar text-warning"></i> Follow-up scheduled by {{ obj.employee.name }} for {{ obj.follow_up_date.strftime('%d %b, %I:%M %p') }}{% if obj.is_completed %} <span class="badge bg-success">Done</span>{% endif %}</div>
+            {% if obj.notes %}<div class="small text-muted">{{ obj.notes }}</div>{% endif %}
+          {% elif kind == 'assign' %}
+            <div><i class="fa-solid fa-right-left text-secondary"></i>
+              {% if obj.from_employee and obj.to_employee %}
+                Reassigned from {{ obj.from_employee.name }} to {{ obj.to_employee.name }}
+              {% elif obj.to_employee %}
+                Assigned to {{ obj.to_employee.name }}
+              {% else %}
+                Released to unassigned pool
+              {% endif %}
+              {% if obj.changed_by %} by {{ obj.changed_by.name }}{% endif %}
+            </div>
+            {% if obj.reason %}<div class="small text-muted">{{ obj.reason }}</div>{% endif %}
+          {% endif %}
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No activity yet on this lead.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Import History - Yellow Pages CRM{% endblock %}
+{% block content %}
+<h4 class="mb-3">Bulk Import History</h4>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>File</th><th>Uploaded By</th><th>Date</th><th>Total Rows</th><th>Imported</th><th>Duplicates</th><th>Errors</th><th></th></tr></thead>
+      <tbody>
+        {% for b in batches %}
+        <tr>
+          <td>{{ b.filename }}</td>
+          <td>{{ b.uploaded_by.name if b.uploaded_by else '—' }}</td>
+          <td>{{ b.uploaded_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+          <td>{{ b.total_rows }}</td>
+          <td class="text-success">{{ b.imported_count }}</td>
+          <td class="text-warning">{{ b.duplicate_count }}</td>
+          <td class="text-danger">{{ b.error_count }}</td>
+          <td><a href="{{ url_for('bulk.batch_leads', batch_id=b.id) }}" class="btn btn-sm btn-outline-primary">View Leads</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">No imports yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<a href="{{ url_for('bulk.upload') }}" class="btn btn-outline-secondary mt-3"><i class="fa-solid fa-arrow-left"></i> Back to Upload</a>
+{% endblock %}

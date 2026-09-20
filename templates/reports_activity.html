@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Activity Report - Yellow Pages CRM{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Employee Activity Report</h4>
+  <div>
+    <a href="{{ url_for('reports.followups') }}" class="btn btn-sm btn-outline-secondary">Follow-ups</a>
+    <a href="{{ url_for('reports.reassignments') }}" class="btn btn-sm btn-outline-secondary">Reassignments</a>
+    <a href="{{ url_for('reports.activity_export') }}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Employee</th><th>Role</th><th>Calls Made</th><th>Follow-ups Set</th>
+          <th>Follow-ups Pending</th><th>Leads Currently Assigned</th><th>Enrollments</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.employee.name }}</td>
+          <td><span class="badge bg-light text-dark">{{ r.employee.role_label }}</span></td>
+          <td>{{ r.calls }}</td>
+          <td>{{ r.followups_set }}</td>
+          <td>{% if r.followups_pending %}<span class="badge bg-warning text-dark">{{ r.followups_pending }}</span>{% else %}0{% endif %}</td>
+          <td>{{ r.leads_assigned }}</td>
+          <td>{{ r.enrollments }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No employees in scope.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

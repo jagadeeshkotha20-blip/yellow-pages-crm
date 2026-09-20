@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ team.name }} - Yellow Pages CRM{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="mb-0">{{ team.name }}</h4>
+    <small class="text-muted">Team Lead: {{ team.team_lead.name if team.team_lead else 'Not assigned' }}</small>
+  </div>
+  {% if can_manage %}
+  <a href="{{ url_for('teams.edit_team', team_id=team.id) }}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-pen"></i> Edit</a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Assigned Leads</th></tr></thead>
+      <tbody>
+        {% for m in members %}
+        <tr>
+          <td>{{ m.name }}<br><small class="text-muted">{{ m.email }}</small></td>
+          <td><span class="badge bg-light text-dark">{{ m.role_label }}</span></td>
+          <td>{% if m.is_active_employee %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+          <td>{{ lead_counts.get(m.id, 0) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center text-muted py-4">No members in this team yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

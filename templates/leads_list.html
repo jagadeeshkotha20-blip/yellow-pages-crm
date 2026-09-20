@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Leads - Yellow Pages CRM{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Leads</h4>
+  <div>
+    <a href="{{ url_for('leads.export_leads_csv', **filters) }}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+    <a href="{{ url_for('leads.new_lead') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> New Lead</a>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small mb-1">Search</label>
+        <input type="text" name="q" value="{{ filters.q }}" class="form-control form-control-sm" placeholder="Business, phone, contact...">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Status</label>
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All</option>
+          {% for s in statuses %}
+          <option value="{{ s }}" {% if filters.status==s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Source</label>
+        <select name="source" class="form-select form-select-sm">
+          <option value="">All</option>
+          {% for s in sources %}
+          <option value="{{ s }}" {% if filters.source==s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">State</label>
+        <select name="state" class="form-select form-select-sm">
+          <option value="">All</option>
+          {% for s in states %}
+          <option value="{{ s }}" {% if filters.state==s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Assigned To</label>
+        <select name="assigned" class="form-select form-select-sm">
+          <option value="">Anyone</option>
+          <option value="unassigned" {% if filters.assigned=='unassigned' %}selected{% endif %}>Unassigned</option>
+          {% for e in employees %}
+          <option value="{{ e.id }}" {% if filters.assigned==e.id|string %}selected{% endif %}>{{ e.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-sm btn-outline-primary w-100"><i class="fa-solid fa-filter"></i></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Business</th>
+          <th>Phone</th>
+          <th>State/City</th>
+          <th>Source</th>
+          <th>Status</th>
+          <th>Assigned To</th>
+          <th>Next Follow-up</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lead in leads %}
+        <tr>
+          <td><a href="{{ url_for('leads.view_lead', lead_id=lead.id) }}">{{ lead.business_name }}</a></td>
+          <td>{{ lead.phone }}</td>
+          <td>{{ lead.state }}{% if lead.city %}, {{ lead.city }}{% endif %}</td>
+          <td><span class="badge bg-light text-dark">{{ lead.source }}</span></td>
+          <td><span class="badge bg-secondary status-badge">{{ lead.status }}</span></td>
+          <td>
+            {% if lead.assigned_to %}
+              <span class="lead-locked"><i class="fa-solid fa-lock"></i> {{ lead.assigned_to.name }}</span>
+            {% else %}
+              <span class="lead-open"><i class="fa-solid fa-lock-open"></i> Unassigned</span>
+            {% endif %}
+          </td>
+          <td>
+            {% set nf = lead.next_follow_up %}
+            {% if nf %}{{ nf.follow_up_date.strftime('%d %b, %I:%M %p') }}{% else %}—{% endif %}
+          </td>
+          <td class="text-end">
+            {% if not lead.assigned_to and (current_user.can_call() or current_user.is_management()) %}
+            <form method="POST" action="{{ url_for('leads.claim_lead', lead_id=lead.id) }}" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-success"><i class="fa-solid fa-hand"></i> Claim</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">No leads match these filters.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if pagination.pages > 1 %}
+<nav class="mt-3">
+  <ul class="pagination pagination-sm">
+    {% for p in range(1, pagination.pages + 1) %}
+    <li class="page-item {% if p == pagination.page %}active{% endif %}">
+      <a class="page-link" href="{{ url_for('leads.list_leads', page=p, **filters) }}">{{ p }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

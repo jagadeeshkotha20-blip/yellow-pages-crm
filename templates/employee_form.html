@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{% if employee %}Edit{% else %}Add{% endif %} Employee - Yellow Pages CRM{% endblock %}
+{% block content %}
+<h4 class="mb-3">{% if employee %}Edit {{ employee.name }}{% else %}Add Employee{% endif %}</h4>
+<div class="card">
+  <div class="card-body">
+    <form method="POST" class="row g-3">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="col-md-6">
+        <label class="form-label">Full Name *</label>
+        <input type="text" name="name" class="form-control" value="{{ employee.name if employee else (form_data.get('name','') if form_data else '') }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Email *</label>
+        <input type="email" name="email" class="form-control" value="{{ employee.email if employee else (form_data.get('email','') if form_data else '') }}" {% if employee %}readonly{% endif %} required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Phone</label>
+        <input type="text" name="phone" class="form-control" value="{{ employee.phone if employee else (form_data.get('phone','') if form_data else '') }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Role *</label>
+        <select name="role" class="form-select" required>
+          {% for r in roles %}
+          <option value="{{ r }}" {% if employee and employee.role==r %}selected{% elif form_data and form_data.get('role')==r %}selected{% endif %}>{{ ROLE_LABELS[r] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Reports To</label>
+        <select name="manager_id" class="form-select">
+          <option value="">-- None --</option>
+          {% for m in managers %}
+          <option value="{{ m.id }}" {% if employee and employee.manager_id==m.id %}selected{% endif %}>{{ m.name }} ({{ m.role_label }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Team (optional)</label>
+        <select name="team_id" class="form-select">
+          <option value="">-- No team --</option>
+          {% for t in teams %}
+          <option value="{{ t.id }}" {% if employee and employee.team_id==t.id %}selected{% endif %}>{{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Password {% if employee %}(leave blank to keep current){% else %}*{% endif %}</label>
+        <input type="password" name="password" class="form-control" minlength="8" {% if not employee %}required{% endif %}>
+        <small class="text-muted">8+ characters, at least one letter and one number.</small>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">State Scope (optional — leave empty for All India)</label>
+        <select name="state_scope" class="form-select" multiple size="4">
+          {% for s in states %}
+          <option value="{{ s }}" {% if current_states and s in current_states %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+        <small class="text-muted">Ctrl/Cmd+click to select multiple states.</small>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save</button>
+        <a href="{{ url_for('employees.list_employees') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

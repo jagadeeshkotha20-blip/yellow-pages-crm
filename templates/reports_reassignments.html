@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Reassignments Report - Yellow Pages CRM{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Assignment / Reassignment Log</h4>
+  <div>
+    <a href="{{ url_for('reports.activity') }}" class="btn btn-sm btn-outline-secondary">Activity</a>
+    <a href="{{ url_for('reports.followups') }}" class="btn btn-sm btn-outline-secondary">Follow-ups</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Date</th><th>Lead</th><th>From</th><th>To</th><th>Changed By</th><th>Reason</th></tr></thead>
+      <tbody>
+        {% for a in items %}
+        <tr>
+          <td>{{ a.changed_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+          <td><a href="{{ url_for('leads.view_lead', lead_id=a.lead_id) }}">{{ a.lead.business_name }}</a></td>
+          <td>{{ a.from_employee.name if a.from_employee else 'Unassigned' }}</td>
+          <td>{{ a.to_employee.name if a.to_employee else 'Unassigned' }}</td>
+          <td>{{ a.changed_by.name if a.changed_by else '—' }}</td>
+          <td class="small text-muted">{{ a.reason or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted py-4">No assignment activity in scope yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Resign Employee - Yellow Pages CRM{% endblock %}
+{% block content %}
+<h4 class="mb-3">Deactivate {{ employee.name }} &amp; Transfer Tasks</h4>
+
+<div class="alert alert-warning">
+  <i class="fa-solid fa-triangle-exclamation"></i>
+  This will deactivate <strong>{{ employee.name }}</strong>'s login immediately.
+  Their call history and past follow-ups will be preserved exactly as-is — only
+  <strong>current responsibility</strong> for their open leads (and, if applicable,
+  their direct reports / team lead role) will move to whoever you pick below.
+</div>
+
+<div class="card mb-3">
+  <div class="card-header fw-semibold">Leads currently assigned to {{ employee.name }} ({{ assigned_leads|length }})</div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Business</th><th>Phone</th><th>Status</th><th>Next Follow-up</th></tr></thead>
+      <tbody>
+        {% for lead in assigned_leads %}
+        <tr>
+          <td>{{ lead.business_name }}</td>
+          <td>{{ lead.phone }}</td>
+          <td><span class="badge bg-secondary">{{ lead.status }}</span></td>
+          <td>{% set nf = lead.next_follow_up %}{{ nf.follow_up_date.strftime('%d %b') if nf else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-muted text-center py-3">No leads currently assigned.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if direct_reports or led_teams %}
+<div class="card mb-3 border-warning">
+  <div class="card-header fw-semibold text-warning-emphasis">
+    <i class="fa-solid fa-sitemap"></i> Hierarchy impact
+  </div>
+  <div class="card-body">
+    {% if direct_reports %}
+    <p class="mb-2"><strong>{{ direct_reports|length }} employee(s) currently report to {{ employee.name }}:</strong></p>
+    <ul class="mb-3">
+      {% for r in direct_reports %}
+      <li>{{ r.name }} ({{ r.role_label }})</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if led_teams %}
+    <p class="mb-2"><strong>{{ employee.name }} leads {{ led_teams|length }} team(s):</strong>
+      {{ led_teams|map(attribute='name')|join(', ') }}</p>
+    {% endif %}
+    <p class="text-muted small mb-0">
+      They'll need a new manager below so the hierarchy stays connected — nobody
+      is left reporting to a deactivated account.
+    </p>
+  </div>
+</div>
+{% endif %}
+
+<form method="POST" class="card">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card-body">
+    {% if assigned_leads %}
+    <label class="form-label">Transfer all {{ assigned_leads|length }} lead(s) to:</label>
+    <select name="transfer_to_id" class="form-select mb-3" required>
+      <option value="">-- Select employee --</option>
+      {% for t in transfer_options %}
+      <option value="{{ t.id }}">{{ t.name }} ({{ t.role_label }})</option>
+      {% endfor %}
+    </select>
+    {% else %}
+    <p class="text-muted">No leads to transfer — this employee will simply be deactivated.</p>
+    {% endif %}
+
+    {% if direct_reports or led_teams %}
+    <label class="form-label">Move {{ direct_reports|length }} direct report(s){% if led_teams %} and team lead role{% endif %} to:</label>
+    <select name="new_manager_id" class="form-select mb-2" required>
+      <option value="">-- Select new manager --</option>
+      {% for t in transfer_options %}
+      <option value="{{ t.id }}">{{ t.name }} ({{ t.role_label }})</option>
+      {% endfor %}
+    </select>
+    <small class="text-muted d-block mb-3">Leave blank to reuse the same person picked above for lead transfer.</small>
+    {% endif %}
+
+    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-user-slash"></i> Confirm Deactivation & Transfer</button>
+    <a href="{{ url_for('employees.list_employees') }}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}
