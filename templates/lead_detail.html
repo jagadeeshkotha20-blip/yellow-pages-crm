@@ -173,7 +173,9 @@
         <div class="timeline-item">
           <small class="text-muted">{{ dt.strftime('%d %b %Y, %I:%M %p') }}</small>
           {% if kind == 'call' %}
-            <div><i class="fa-solid fa-phone text-primary"></i> <strong>Call by {{ obj.employee.name }}</strong> — status set to <span class="badge bg-secondary">{{ obj.status_set }}</span></div>
+            <div><i class="fa-solid fa-phone text-primary"></i> <strong>Call by {{ obj.employee.name }}</strong> — status set to <span class="badge bg-secondary">{{ obj.status_set }}</span>
+                {% if obj.duration_minutes %}<span class="text-muted small">&middot; {{ obj.duration_minutes }} min</span>{% endif %}
+            </div>
             {% if obj.notes %}<div class="small text-muted">{{ obj.notes }}</div>{% endif %}
           {% elif kind == 'followup' %}
             <div><i class="fa-solid fa-calendar text-warning"></i> Follow-up scheduled by {{ obj.employee.name }} for {{ obj.follow_up_date.strftime('%d %b, %I:%M %p') }}{% if obj.is_completed %} <span class="badge bg-success">Done</span>{% endif %}</div>
