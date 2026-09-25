@@ -367,3 +367,16 @@ def enroll_lead(lead_id):
     db.session.commit()
     flash("Lead marked as enrolled and payment recorded.", "success")
     return redirect(url_for("leads.view_lead", lead_id=lead_id))
+
+@leads_bp.route("/<int:lead_id>/delete", methods=["POST"])
+@login_required
+def delete_lead(lead_id):
+    if not current_user.is_super_admin():
+        abort(403)
+
+    lead = Lead.query.get_or_404(lead_id)
+    business_name = lead.business_name
+    db.session.delete(lead)
+    db.session.commit()
+    flash(f"'{business_name}' and all its history have been permanently deleted.", "success")
+    return redirect(url_for("leads.list_leads"))
