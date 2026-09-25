@@ -86,6 +86,20 @@
       </div>
     </div>
     {% endif %}
+
+    {% if current_user.is_super_admin() %}
+    <div class="card mb-3 border-danger">
+      <div class="card-header fw-semibold text-danger">Danger Zone</div>
+      <div class="card-body">
+        <p class="small text-muted mb-2">Permanently deletes this lead and every call, follow-up, and history entry tied to it. This cannot be undone.</p>
+        <form method="POST" action="{{ url_for('leads.delete_lead', lead_id=lead.id) }}"
+              onsubmit="return confirm('Permanently delete \'{{ lead.business_name }}\' and all its call history? This cannot be undone.');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm btn-outline-danger w-100"><i class="fa-solid fa-trash"></i> Delete Lead Permanently</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
   </div>
 
   <div class="col-lg-8">
